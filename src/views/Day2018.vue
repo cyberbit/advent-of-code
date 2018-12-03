@@ -1,0 +1,22 @@
+<template>
+  <div id="day-2018">
+    <div class="mb-4">
+      <h1>Day {{ $route.params.day }}</h1>
+      <router-link
+        :to="{ name: 'list2018' }"
+        class="btn btn-primary">Back</router-link>
+    </div>
+    <component :is="'Day' + $route.params.day" />
+  </div>
+</template>
+
+<script>
+import Day1 from '../components/days/2018/Day1'
+
+export default {
+  name: 'Day2018',
+  components: {
+    Day1
+  }
+}
+</script>
