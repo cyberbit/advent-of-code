@@ -34,6 +34,7 @@
 
 <script>
 import _ from 'lodash'
+import lev from 'fast-levenshtein' // see https://en.wikipedia.org/wiki/Levenshtein_distance
 
 export default {
   name: 'Day2',
@@ -60,7 +61,7 @@ export default {
       _.each(rows, v => {
         let counts = _
           .chain(v)
-          .split('') // split string into characters
+          .split('') // explode string
           .countBy() // group characters by number of occurrences
           .values() // pull values
           .thru(c => new Set(c)) // convert to set
@@ -74,7 +75,25 @@ export default {
     },
 
     part2 () {
-      //
+      let rows = _.split(this.input, '\n')
+      let common = ''
+
+      _.each(rows, (row1, i) => { // iterate all rows
+        _.each(_.slice(rows, i + 1), (row2) => { // iterate rows after the index row
+          if (lev.get(row1, row2) === 1) {
+            common = _
+              .chain(row1)
+              .split('') // explode string
+              .zipWith(row2.split(''), (a, b) => new Set([a, b])) // ['abc'], ['abx'] => [{'a'}, {'b'}, {'c', 'x'}]
+              .filter(v => v.size === 1) // remove different characters
+              .flatMap(v => [...v]) // convert to array
+              .join('') // implode string
+              .value()
+          }
+        })
+      })
+
+      this.solution2 = common
     }
   }
 }
