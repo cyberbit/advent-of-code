@@ -12,6 +12,17 @@
           type="submit"
           class="btn btn-primary">Calculate</button>
       </div>
+      <div class="card mb-4">
+        <div
+          class="card-body text-center"
+          style="overflow-x: auto;">
+          <canvas
+            id="solution1-canvas"
+            width="1000"
+            height="1000"
+            style="border: solid 1px #aaa;" />
+        </div>
+      </div>
       <div class="form-group">
         <label>The solution to part 1 is:</label>
         <input
@@ -65,11 +76,13 @@ export default {
           .map(Number) // cast to numbers
           .value() // destructure to variables
 
-        let origin = x + y * MAX_DIM // top left corner of claim
+        this.drawRect(x, y, w, h)
+
+        let origin = x + y * MAX_DIM // top left "point index" of claim
 
         _.each(_.range(h), hh => {
           _.each(_.range(w), ww => {
-            let point = origin + ww + hh * MAX_DIM // unique point "index" in grid
+            let point = origin + ww + hh * MAX_DIM // point index in grid
 
             grid[point]++ // tally the claim
           })
@@ -87,6 +100,14 @@ export default {
       //
 
       this.solution2 = null
+    },
+
+    drawRect (x, y, w, h) {
+      var c = document.getElementById('solution1-canvas')
+      var ctx = c.getContext('2d')
+
+      ctx.fillStyle = 'rgba(0, 0, 0, .1)'
+      ctx.fillRect(x, y, w, h)
     }
   }
 }
