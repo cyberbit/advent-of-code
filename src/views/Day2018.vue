@@ -13,12 +13,14 @@
 <script>
 import Day1 from '../components/days/2018/Day1'
 import Day2 from '../components/days/2018/Day2'
+import Day3 from '../components/days/2018/Day3'
 
 export default {
   name: 'Day2018',
   components: {
     Day1,
-    Day2
+    Day2,
+    Day3
   }
 }
 </script>
