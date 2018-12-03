@@ -5,7 +5,7 @@
         <textarea
           v-model="input"
           class="form-control"
-          rows="15" />
+          rows="12" />
       </div>
       <div class="form-group">
         <button
