@@ -135,7 +135,7 @@ export default {
       var c = document.getElementById('solution1-canvas')
       var ctx = c.getContext('2d')
 
-      ctx.fillStyle = 'rgba(0, 0, 0, .1)'
+      ctx.fillStyle = 'hsla(' + _.clamp((w * h) / 4, 255) + ', 75%, 50%, .3)'
       ctx.fillRect(x, y, w, h)
     }
   }
