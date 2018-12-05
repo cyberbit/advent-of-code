@@ -8,6 +8,9 @@ module.exports = {
     publicPath: '/dist/',
     filename: 'build.js'
   },
+  plugins: [
+    new webpack.NamedModulesPlugin()
+  ],
   module: {
     rules: [
       {

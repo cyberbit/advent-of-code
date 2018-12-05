@@ -49,7 +49,7 @@ import _ from 'lodash'
 const MAX_DIM = 1000
 
 export default {
-  name: 'Day2',
+  name: 'Day3',
 
   data () {
     return {

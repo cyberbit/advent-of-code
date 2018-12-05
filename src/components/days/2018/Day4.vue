@@ -36,7 +36,7 @@
 import _ from 'lodash'
 
 export default {
-  name: 'Day2',
+  name: 'Day4',
 
   data () {
     return {
