@@ -45,7 +45,7 @@
 
 <script>
 import _ from 'lodash'
-// import manhattan from 'manhattan'
+import manhattan from 'manhattan'
 import vonNeumann from 'von-neumann'
 
 const MAX_DIM = 400
@@ -65,7 +65,6 @@ export default {
   methods: {
     calculate () {
       this.part1()
-      this.part2()
     },
 
     part1 () {
@@ -182,6 +181,9 @@ export default {
           console.log(edges, gridCounts)
 
           this.solution1 = max.area
+
+          // calculate part2 (overlay)
+          this.part2()
         }
       }
 
@@ -189,9 +191,51 @@ export default {
     },
 
     part2 () {
-      // let rows = _.split(this.input, '\n')
+      let rows = _.split(this.input, '\n')
+      let points = _(rows)
+        .map((v, i) => {
+          let xy = _(v)
+            .split(', ')
+            .map(Number)
+            .value()
 
-      this.solution2 = null
+          return {
+            id: i + 1,
+            x: xy[0],
+            y: xy[1]
+          }
+        })
+        .value()
+
+      let grid = _.times(MAX_DIM * MAX_DIM, _.constant(0))
+
+      _.each(points, p => {
+        let pp = _.extend({ hue: 'red' }, p)
+
+        this.drawSinglePoint(pp)
+      })
+
+      let safeArea = _.reduce(grid, (c, g, i) => {
+        let gp = {
+          x: i % MAX_DIM,
+          y: _.floor(i / MAX_DIM)
+        }
+
+        let sum = _.reduce(points, (c, p) => {
+          return c + manhattan([p.x, p.y], [gp.x, gp.y])
+        }, 0)
+
+        grid[i] = sum
+
+        if (sum < 10000) {
+          this.drawSinglePoint(_.extend({ hue: 'rgba(255, 128, 0, 0.5)' }, gp))
+          return ++c
+        }
+
+        return c
+      })
+
+      this.solution2 = safeArea
     },
 
     drawPoint (p, filled = true) {
