@@ -5,7 +5,7 @@
         <textarea
           v-model="input"
           class="form-control"
-          rows="12" />
+          rows="4" />
       </div>
       <div class="form-group">
         <button
@@ -18,8 +18,8 @@
           style="overflow-x: auto;">
           <canvas
             id="solution1-canvas"
-            width="500"
-            height="500"
+            width="400"
+            height="400"
             style="border: solid 1px #aaa;" />
         </div>
       </div>
@@ -48,7 +48,7 @@ import _ from 'lodash'
 // import manhattan from 'manhattan'
 import vonNeumann from 'von-neumann'
 
-const MAX_DIM = 200
+const MAX_DIM = 400
 const CANVAS_SCALE = 1
 
 export default {
@@ -88,68 +88,104 @@ export default {
       let grid = _.times(MAX_DIM * MAX_DIM, _.constant(0))
 
       _.each(points, p => {
-        this.drawPoint(p)
+        p.hue = 'red'
+        this.drawSinglePoint(p)
 
         let gridPoint = p.x + p.y * MAX_DIM
 
-        console.log(gridPoint)
-
         grid[gridPoint] = p.id
-        this.drawPoint(p)
       })
 
       let ct = 0
+      let known = new Set()
 
-      while (ct < 100) {
-        ct++
+      let draw = () => {
+        if (ct < MAX_DIM / 2) {
+          ct++
 
-        let lastRun = []
-        // let known = []
+          let run = []
+          // debugger
+          _.each(grid, (g, i) => {
+            if (!known.has(i) && g !== 0) {
+              let p = [
+                i % MAX_DIM,
+                _.floor(i / MAX_DIM)
+              ]
 
-        _.each(grid, (g, i) => {
-          if (g > 0) {
-            let p = [
-              i % MAX_DIM,
-              _.floor(i / MAX_DIM)
-            ]
+              let von = vonNeumann()
+              let nextPoints = _.map(von, v => [
+                v[0] + p[0],
+                v[1] + p[1]
+              ])
 
-            let von = vonNeumann()
-            let nextPoints = _.map(von, v => [
-              v[0] + p[0],
-              v[1] + p[1]
-            ])
+              known.add(i)
 
-            // console.log(i, g, p, von, nextPoints)
+              // console.log(i, g, p, von, nextPoints)
 
-            _.each(nextPoints, n => {
-              // debugger
-              let np = {
-                id: g,
-                x: n[0],
-                y: n[1]
-              }
-              let npi = np.x + np.y * MAX_DIM
-
-              if (npi >= 0) {
-                let currentPoint = lastRun[np.x + np.y * MAX_DIM]
-
-                if (!currentPoint) {
-                  this.drawPoint(np)
+              _.each(nextPoints, n => {
+                // debugger
+                let np = {
+                  id: g,
+                  x: n[0],
+                  y: n[1]
                 }
 
-                lastRun[np.x + np.y * MAX_DIM] = currentPoint ? 'texas' : np.id
-              }
-            })
-          }
-        })
-        console.log(lastRun)
-        _.each(lastRun, (v, i) => {
-          grid[i] = v
-        })
-      }
-      console.log(grid)
+                let npi = np.x + np.y * MAX_DIM
 
-      this.solution1 = null
+                if (_.inRange(np.x, MAX_DIM) && _.inRange(np.y, MAX_DIM)) {
+                  // if grid has point, then spot is already claimed. do not mark point
+                  // if current run has point, and marked with different id then spot is a tie. mark point as tie
+                  // otherwise, mark point as owned
+
+                  if (grid[npi]) {
+                    // do nothing
+                  } else if (run[npi] && run[npi] !== np.id) {
+                    run[npi] = '.'
+                    this.drawSinglePoint(_.extend({ hue: 'white' }, np))
+                  } else {
+                    run[npi] = np.id
+                    this.drawSinglePoint(np)
+                  }
+                }
+              })
+            }
+          })
+
+          _.each(run, (v, i) => {
+            if (v) {
+              grid[i] = v
+            }
+          })
+          window.requestAnimationFrame(draw)
+        } else {
+          // distance processing is finished
+
+          let edges = _([
+            _.slice(grid, 0, MAX_DIM), // top
+            _.filter(grid, (v, i) => (i + 1) % MAX_DIM === 0), // right
+            _.slice(grid, (MAX_DIM * (MAX_DIM - 1))), // bottom
+            _.filter(grid, (v, i) => i % MAX_DIM === 0) // left
+          ])
+            .flatten()
+            .uniq()
+            .value()
+
+          let gridCounts = _(grid)
+            .countBy()
+            .omit(edges)
+            .toPairs()
+            .map(v => ({ id: v[0], area: v[1] }))
+            .value()
+
+          let max = _.maxBy(gridCounts, 'area')
+
+          console.log(edges, gridCounts)
+
+          this.solution1 = max.area
+        }
+      }
+
+      window.requestAnimationFrame(draw)
     },
 
     part2 () {
@@ -158,14 +194,34 @@ export default {
       this.solution2 = null
     },
 
-    drawPoint (p) {
+    drawPoint (p, filled = true) {
       var c = document.getElementById('solution1-canvas')
       var ctx = c.getContext('2d')
 
-      ctx.fillStyle = 'hsla(' + (255 / 6) * p.id + ', 100%, 50%, 0.1)'
+      ctx.fillStyle = p.hue || 'hsla(' + (255 / 6) * p.id + ', 100%, 50%, 1)'
+      ctx.strokeStyle = ctx.fillStyle
       ctx.beginPath()
       ctx.ellipse(p.x * CANVAS_SCALE, p.y * CANVAS_SCALE, 5, 5, 0, 0, 2 * Math.PI)
-      ctx.fill()
+      if (filled) {
+        ctx.fill()
+      } else {
+        ctx.stroke()
+      }
+    },
+
+    drawSinglePoint (p) {
+      var c = document.getElementById('solution1-canvas')
+      var ctx = c.getContext('2d')
+
+      ctx.fillStyle = p.hue || 'hsla(' + (255 / 50) * p.id + ', 100%, 50%, 1)'
+      // ctx.strokeStyle = ctx.fillStyle
+      ctx.fillRect(p.x * CANVAS_SCALE, p.y * CANVAS_SCALE, 1, 1)
+    },
+
+    drawGrid (grid) {
+      let chunks = _.chunk(grid, MAX_DIM)
+
+      console.log(chunks)
     }
   }
 }
