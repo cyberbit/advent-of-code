@@ -17,6 +17,7 @@ import Day3 from '../components/days/2018/Day3'
 import Day4 from '../components/days/2018/Day4'
 import Day5 from '../components/days/2018/Day5'
 import Day6 from '../components/days/2018/Day6'
+import Day7 from '../components/days/2018/Day7'
 
 export default {
   name: 'Day2018',
@@ -26,7 +27,8 @@ export default {
     Day3,
     Day4,
     Day5,
-    Day6
+    Day6,
+    Day7
   }
 }
 </script>
