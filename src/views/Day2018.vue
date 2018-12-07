@@ -1,7 +1,7 @@
 <template>
   <div id="day-2018">
     <div class="mb-4">
-      <!-- <h1>Day {{ $route.params.day }}</h1> -->
+      <h1>Day {{ $route.params.day }}</h1>
       <router-link
         :to="{ name: 'list2018' }"
         class="btn btn-primary">Back</router-link>
