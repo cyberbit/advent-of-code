@@ -48,55 +48,79 @@ export default {
 
   methods: {
     calculate () {
-      let [playerCount, marbleCount] = _(this.input.match(/(\d+).* (\d+)/))
+      let [players, marbles] = _(this.input.match(/(\d+).* (\d+)/))
         .tail()
         .map(Number)
         .value()
 
-      console.log(playerCount, marbleCount)
+      let highScore = playerCount => marbleCount => {
+        let currentMarble = 1
+        let currentPlayer = 0
+        let playerScores = _.times(playerCount, _.constant(0))
+        let field = [0]
 
-      let currentMarble = 1
-      let currentPlayer = 0
-      let playerScores = _.times(playerCount, _.constant(0))
-      let field = [0]
+        // TODO find time leak here and SQUISH
+        // probably stick with fixed size array and calculate length outside
+        _.each(_.range(1, marbleCount + 1), marble => {
+          if (marble % 23 === 0) {
+            currentMarble = this.wrapIndex(field.length, currentMarble - 7)
+            let bonusMarble = field[currentMarble]
 
-      _.each(_.range(1, marbleCount + 1), marble => {
-        if (marble % 23 === 0) {
-          playerScores[currentPlayer] += marble
-          currentMarble = this.wrapIndex(field.length, currentMarble - 7)
-          let bonusMarble = field[currentMarble]
-          playerScores[currentPlayer] += bonusMarble
-          _.pullAt(field, [currentMarble])
-        } else {
-          currentMarble = this.wrapIndex(field.length, currentMarble + 2)
-          field.splice(currentMarble, 0, marble)
-        }
-        currentPlayer = this.wrapIndex(playerCount, currentPlayer + 1)
-      })
+            playerScores[currentPlayer] += marble + bonusMarble
 
-      /*
-      currentMarble = 1
-      currentPlayer = 0
-      playerScores = [0, 0, 0, ...], length is playerCount
-      field = [0]
-      loop marble in marbles
-        marble is factor of 23?
-          add marble to current player score
-          currentMarble = wrap currentMarble - 7 to field
-          bonusMarble = field[currentMarble]
-          add bonusMarble to current player score
-          remove bonusMarble from field
-        else
-          currentMarble = wrap currentMarble + 2 to field
-          insert marble to field[currentMarble]
-        end is
-        currentPlayer = wrap currentPlayer + 1 to playerCount
-      end loop marbles
-      return max playerScore
-      */
+            field.splice(currentMarble, 1)
+          } else {
+            currentMarble = this.wrapIndex(field.length, currentMarble + 2)
+            field.splice(currentMarble, 0, marble)
+          }
+          currentPlayer = this.wrapIndex(playerCount, currentPlayer + 1)
 
-      this.solution1 = null
-      this.solution2 = null
+          if (marble % 10000 === 0) {
+            console.log('marble %o, field %o', marble, field.length)
+          }
+          if (marble > 400000) {
+            return false
+          }
+        })
+
+        /*
+        currentMarble = 1
+        currentPlayer = 0
+        playerScores = [0, 0, 0, ...], length is playerCount
+        field = [0]
+        loop marble in marbles
+          marble is factor of 23?
+            add marble to current player score
+            currentMarble = wrap currentMarble - 7 to field
+            bonusMarble = field[currentMarble]
+            add bonusMarble to current player score
+            remove bonusMarble from field
+          else
+            currentMarble = wrap currentMarble + 2 to field
+            insert marble to field[currentMarble]
+          end is
+          currentPlayer = wrap currentPlayer + 1 to playerCount
+        end loop marbles
+        return max playerScore
+        */
+
+        return _(playerScores)
+          .map((score, i) => ({
+            id: i + 1,
+            score: score
+          }))
+          .value()
+      }
+
+      let scoreMarbles = highScore(players)
+      let winner = _.maxBy(scoreMarbles(marbles), 'score')
+
+      this.solution1 = winner.score
+
+      // let bigScores = scoreMarbles(marbles * 100)
+      // let winnerBigScore = _.find(bigScores, ['player', winner.id])
+
+      // this.solution2 = winnerBigScore.score
     },
 
     wrapIndex (length, index) {
